@@ -3,6 +3,7 @@ import ChatBar from './ChatBar.jsx';
 import Message from './Message.jsx';
 import MessageList from './MessageList.jsx'
 
+
 class App extends Component {
   constructor(props) {
     super(props);
@@ -41,6 +42,27 @@ class App extends Component {
         },
       ]
     };
+    this.onSubmit = this.onSubmit.bind(this);
+  }
+   generateRandomId = () => {
+    return Math.random().toString(36).substr(2, 6);
+  };
+
+  onSubmit(e){
+    e.preventDefault();
+    let content = e.target.elements.chatMessage.value;
+    const username = e.target.elements.chatName.value;
+    if (!content) {
+      return;
+    };
+      const newMessage = {
+        id: this.generateRandomId(),
+        content,
+        username
+      };
+    const messages = this.state.messages.concat(newMessage);
+    this.setState({ messages });
+    e.target.elements.chatMessage.value = "";
   }
   componentDidMount() {
   console.log("componentDidMount <App />");
@@ -58,9 +80,9 @@ class App extends Component {
     const messageList = <MessageList message={this.state.messages}/>
     return (
       <div>
-      <h1> Chatty🤗 </h1>
+      <h1>🤗</h1>
       {messageList}
-      <ChatBar currentUser={this.state.currentUser}/ >
+      <ChatBar onSubmit={this.onSubmit} currentUser={this.state.currentUser}/ >
       </div>
     );
   }
