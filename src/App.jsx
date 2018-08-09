@@ -7,84 +7,87 @@ import MessageList from './MessageList.jsx'
 class App extends Component {
   constructor(props) {
     super(props);
+    this.socket = new WebSocket("ws://localhost:3001");
     this.state = {
       loading: true,
       currentUser: { name: "Raf" },
-      messages: [{
-          type: "incomingMessage",
-          id: "1234",
-          content: "I won't be impressed with technology until I can download food.",
-          username: "Anonymous1"
-        },
-        {
-          type: "incomingMessage",
-          id: "3123123",
-          content: "I wouldn't want to download Kraft Dinner. I'd be scared of cheese packet loss.",
-          username: "Anonymous2"
-        },
-        {
-          type: "incomingMessage",
-          id: "31223",
-          content: "...",
-          username: "nomnom"
-        },
-        {
-          type: "incomingMessage",
-          id: "55656",
-          content: "I'd love to download a fried egg, but I'm afraid encryption would scramble it",
-          username: "Anonymous2"
-        },
-        {
-          type: "incomingMessage",
-          id: "31239223",
-          content: "This isn't funny. You're not funny",
-          username: "nomnom"
-        },
-      ]
+      messages: []
     };
-    this.onSubmit = this.onSubmit.bind(this);
+    this.addMessage = this.addMessage.bind(this);
+    this.IncomingMessage = this.IncomingMessage.bind(this);
+    this.serverConnected = this.serverConnected.bind(this);
+    this.changeUser = this.changeUser.bind(this);
   }
-   generateRandomId = () => {
-    return Math.random().toString(36).substr(2, 6);
-  };
 
-  onSubmit(e){
+  addMessage(e) {
     e.preventDefault();
-    let content = e.target.elements.chatMessage.value;
-    const username = e.target.elements.chatName.value;
+    const content = e.target.elements.chatMessage.value;
+    const username = this.state.currentUser.name;
+    const type = "postMessage";
     if (!content) {
       return;
     };
-      const newMessage = {
-        id: this.generateRandomId(),
-        content,
-        username
-      };
-    const messages = this.state.messages.concat(newMessage);
-    this.setState({ messages });
+    const newMessage = {
+      content,
+      type,
+      username
+    };
+    this.socket.send(JSON.stringify(newMessage));
     e.target.elements.chatMessage.value = "";
-  }
-  componentDidMount() {
-  console.log("componentDidMount <App />");
-  setTimeout(() => {
-    console.log("Simulating incoming message");
-    // Add a new message to the list of messages in the data store
-    const newMessage = {id: 3, username: "Michelle", content: "Hello there!"};
-    const messages = this.state.messages.concat(newMessage)
-    // Update the state of the app component.
-    // Calling setState will trigger a call to render() in App and all child components.
-    this.setState({messages: messages})
-  }, 3000);
-};
-  render() {
-    const messageList = <MessageList message={this.state.messages}/>
-    return (
+  };
+
+  changeUser(e) {
+    e.preventDefault();
+    const type = "postNotification";
+    const previousUser = this.state.currentUser.name;
+    let newUser = e.target.elements.chatName.value;
+    const content = `${previousUser} has changed their name to ${newUser}`;
+    if (!newUser) {
+      this.setState({ currentUser: { name: "Anonymous" } });
+    } else {
+      const newNotification = {
+        content,
+        type
+      };
+      this.setState({ currentUser: { name: newUser } });
+      this.socket.send(JSON.stringify(newNotification));
+      }
+      console.log(this.state.currentUser.name);
+    }
+
+    IncomingMessage(incMessage) {
+      let message = JSON.parse(incMessage.data);
+      switch (message.type) {
+        case "incomingMessage":
+          const messages = this.state.messages.concat(message);
+          this.setState({ messages });
+          break;
+        case "incomingNotification":
+          const notifications = this.state.messages.concat(message);
+          this.setState({ messages: notifications });
+          break;
+        default:
+          // show an error in the console if the message type is unknown
+          throw new Error("Unknown event type " + data.type);
+      }
+    };
+
+    serverConnected() {
+      console.log("Connected to server!");
+    };
+
+    componentDidMount() {
+      this.socket.addEventListener('open', this.serverConnected);
+      this.socket.addEventListener('message', this.IncomingMessage);
+    };
+    render() {
+      const messageList = < MessageList message={ this.state.messages }/>
+      return (
       <div>
-      <h1>🤗</h1>
-      {messageList}
-      <ChatBar onSubmit={this.onSubmit} currentUser={this.state.currentUser}/ >
-      </div>
-    );
+        <h1> 🤗 </h1> { messageList }
+        <ChatBar onSubmit={ this.addMessage } changeUser={ this.changeUser } currentUser={ this.state.currentUser }/>
+        </div>
+      );
+    }
   }
-}
-export default App;
+  export default App;
