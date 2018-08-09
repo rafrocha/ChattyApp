@@ -73,12 +73,14 @@ body {
   position: fixed;
   right: 0;
   top: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .navbar-brand {
   color: inherit;
   display: block;
-  float: left;
   font-weight: 700;
   font-size: 28px;
   height: 60px;
