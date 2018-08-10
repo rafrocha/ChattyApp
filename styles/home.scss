@@ -6,7 +6,7 @@ body {
   color: black;
   font-family: 'Open Sans', sans-serif;
   font-size: 14px;
-  margin: 110px 10px 70px 10px;
+  margin: 120px 10px 70px 10px;
 }
 
 .chatbar {
@@ -28,7 +28,6 @@ body {
   line-height: 40px;
   margin: 5px;
   padding: 0 9px;
-
 }
 
 .chatbar-message {
@@ -41,7 +40,7 @@ body {
   border-radius: 10px;
 }
 
-.message-form{
+.message-form {
   min-width: 85%;
   /*max-width: 85%;*/
 }
@@ -67,7 +66,7 @@ body {
   margin: 10px auto;
 }
 
-.combine-message{
+.combine-message {
   display: flex;
   flex-direction: column;
   padding: 10px 10px 5px 10px;
@@ -77,7 +76,7 @@ body {
   justify-content: flex-start;
 }
 
-.combine-message-current{
+.combine-message-current {
   display: flex;
   flex-direction: column;
   padding: 10px 10px 5px 10px;
@@ -113,7 +112,7 @@ body {
 .navbar {
   background-color: #ffffff;
   border-bottom: 1px solid lightgrey;
-  height: 70px;
+  height: 75px;
   left: 0;
   padding: 10px 10px;
   position: fixed;
@@ -133,41 +132,37 @@ body {
   display: block;
   font-weight: 700;
   font-size: 28px;
-  height: 60px;
-  line-height: 60px;
   padding: 0 10px;
   text-decoration: none;
+  padding-bottom: 10px;
 }
 
-.onlineUsers{
-  margin-bottom: 15px;
+.onlineUsers {
+  padding-bottom: 10px;
 }
 
 h1 {
   padding-left: 20px;
 }
 
-form{
-  display:flex;
+form {
+  display: flex;
 }
 
-div#react-root{
+div#react-root {
   margin-top: 80px;
 }
 
 @media (max-width: 1200px) {
 
-.message-form{
-  min-width: 80%;
-}
-
+  .message-form {
+    min-width: 80%;
+  }
 }
 
 @media (max-width: 900px) {
 
-.message-form{
-  min-width: 75%;
+  .message-form {
+    min-width: 75%;
+  }
 }
-
-}
-

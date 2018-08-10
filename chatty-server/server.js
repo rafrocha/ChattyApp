@@ -16,8 +16,7 @@ const server = express()
 // Create the WebSockets server
 const wss = new SocketServer({ server });
 
-let currentMsg = '';
-
+//sets primary arrays for all the messages, all users and the object containing all users and their info.
 let allMsgs = [];
 let allUsers = [];
 let activeUsers = {};
@@ -30,6 +29,7 @@ wss.on('connection', (client) => {
   client.id = uuidv4();
   console.log("User connected");
   handleConnection(client);
+  //Creates newUser object for the person connected. Also sets the size and type of active users object.
   let newUser = "Anonymous" + Math.floor((Math.random() * 1000) + 1);
   activeUsers.size = wss.clients.size;
   activeUsers.type = "users";
@@ -40,7 +40,9 @@ wss.on('connection', (client) => {
     content: `${newUser} has connected. Welcome to Chatty!`,
     username: newUser,
   }
+
   sendFirstConnection(client.userConnected, client);
+  //Adds the current user to the array of users.
   allUsers.push(client.userConnected);
   activeUsers.allUsers = allUsers;
   sendUsers(activeUsers);
@@ -60,6 +62,7 @@ wss.on('connection', (client) => {
   })
 });
 
+//function to send the notification of user disconected and also filter OUT the user disconected from the array of current users.
 function sendIDDisc(user) {
   let disconnectedUser = {
     type: "incomingNotification",
@@ -73,15 +76,18 @@ function sendIDDisc(user) {
   broadcastMsg(disconnectedUser);
 }
 
+//Sends users to all clients.
 function sendUsers(users) {
   broadcastMsg(users);
 }
 
+//sends the new user info to react client that logged in. Setting all the values to that new user states.
 function sendFirstConnection(user, client) {
   client.send(JSON.stringify(user));
 }
 
-function broadcastMsgFirst(data){
+//Sends to all clients a notification of the user that connected.
+function broadcastMsgFirst(data) {
   let msg = data;
   msg.type = "WelcomeMSG";
   let sentMsg = JSON.stringify(msg);
@@ -90,21 +96,25 @@ function broadcastMsgFirst(data){
   })
 }
 
+//broadcasts message to all clients.
 function broadcastMsg(data) {
   wss.clients.forEach(function(client) {
     client.send(JSON.stringify(data));
   })
 }
 
+//Handles incoming messages depending on their type.
 function handleMessage(message) {
   currentMsg = JSON.parse(message);
   allMsgs.push(currentMsg);
   switch (currentMsg.type) {
+    //post messages are the messages posted on the chat.
     case "postMessage":
       currentMsg.id = uuidv4();
       currentMsg.type = "incomingMessage";
       broadcastMsg(currentMsg);
       break;
+      //post notifications can be users connecting, disconnecting or changing their name. Changes the name on current client connected.
     case "postNotification":
       currentMsg.type = "incomingNotification";
       wss.clients.forEach(function(client) {
@@ -114,6 +124,7 @@ function handleMessage(message) {
         } else { console.log("Nothing changed!") }
       });
       currentMsg.id = uuidv4();
+      //sends the new users to update online users list with new names or removing old names.
       sendUsers(activeUsers);
       broadcastMsg(currentMsg);
       break;
@@ -123,11 +134,13 @@ function handleMessage(message) {
   }
 }
 
+//helper function to update username on the list when name is changed by user.
 function updateUserList(name, array, newName) {
   objIndex = array.findIndex((obj => obj.username === name))
   array[objIndex].username = newName;
 }
 
+//initial function to send the new connected user all the previous existing messages.
 function handleConnection(client) {
   client.send(JSON.stringify(allMsgs));
 }
