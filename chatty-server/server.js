@@ -20,20 +20,24 @@ let currentMsg = '';
 
 let allMsgs = [];
 let activeUsers = {};
-const userColors = ["lime","teal", "orange","brown", "blueviolet","red","navy"];
+const userColors = ["lime", "teal", "orange", "brown", "blueviolet", "red", "navy"];
 
 // Set up a callback that will run when a client connects to the server
 // When a client connects they are assigned a socket, represented by
 // the ws parameter in the callback.
 wss.on('connection', (client) => {
+  client.id = uuidv4();
+  console.log(client.id);
   handleConnection(client);
   activeUsers.size = wss.clients.size;
   activeUsers.type = "users";
-  let userColor = {
-    color: userColors[Math.floor(Math.random()*userColors.length)],
-    type: "color"
+  client.userConnected = {
+    color: userColors[Math.floor(Math.random() * userColors.length)],
+    type: "initialConnection",
+    id: client.id,
+    username: "",
   }
-  sendColor(userColor);
+  sendFirstConnection(client.userConnected, client);
   sendUsers(activeUsers);
 
 
@@ -43,17 +47,33 @@ wss.on('connection', (client) => {
   client.on('close', () => {
     activeUsers.size = wss.clients.size;
     activeUsers.type = "users";
+    console.log(client.userConnected.username);
     sendUsers(activeUsers);
+    sendIDDisc(client.userConnected);
     console.log('Client disconnected');
   })
 });
+
+function sendIDDisc(user) {
+  let disconnectedUser = {
+    type: "incomingNotification",
+    name: user.username,
+    id: user.id,
+  }
+  if (user.username === "") {
+    disconnectedUser.content = `Anonymous person left the chat. We don't need him anyway.`;
+  } else {
+    disconnectedUser.content = `${user.username} left the chat. We don't need him anyway.`;
+  }
+  broadcastMsg(JSON.stringify(disconnectedUser));
+}
 
 function sendUsers(users) {
   broadcastMsg(JSON.stringify(users));
 }
 
-function sendColor(color){
-  broadcastMsg(JSON.stringify(color));
+function sendFirstConnection(user, client) {
+  client.send(JSON.stringify(user));
 }
 
 function broadcastMsg(data) {
@@ -65,18 +85,26 @@ function broadcastMsg(data) {
 function handleMessage(message) {
   currentMsg = JSON.parse(message);
   console.log(currentMsg);
-  currentMsg.id = uuidv4();
   allMsgs.push(currentMsg);
   switch (currentMsg.type) {
     case "postMessage":
+      currentMsg.id = uuidv4();
       currentMsg.type = "incomingMessage";
       broadcastMsg(JSON.stringify(currentMsg));
       console.log("type:", currentMsg.type, "User:", currentMsg.username, "Content:", currentMsg.content, currentMsg.id);
       break;
     case "postNotification":
       currentMsg.type = "incomingNotification";
+      wss.clients.forEach(function(client) {
+        console.log(client.userConnected.id);
+        console.log(currentMsg.id);
+        if (client.userConnected.id == currentMsg.id) {
+          client.userConnected.username = currentMsg.username;
+          console.log(client.userConnected.username);
+        } else { console.log("Nothing changed!") }
+      });
+      currentMsg.id = uuidv4();
       broadcastMsg(JSON.stringify(currentMsg));
-      console.log("type:", currentMsg.type, "Content:", currentMsg.content);
       break;
     default:
       // show an error in the console if the message type is unknown

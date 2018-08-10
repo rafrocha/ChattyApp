@@ -11,7 +11,7 @@ class App extends Component {
     this.socket = new WebSocket("ws://localhost:3001");
     this.state = {
       loading: true,
-      currentUser: { name: "John Doe", color: "black" },
+      currentUser: { name: "Anonymous"+Math.floor((Math.random() * 100) + 1), color: "black", id: ""},
       messages: [],
       onlineUsers: 0
     };
@@ -47,19 +47,23 @@ class App extends Component {
     const type = "postNotification";
     const previousUser = this.state.currentUser.name;
     let newUser = e.target.elements.chatName.value;
-    const content = `${previousUser} has changed their name to ${newUser}`;
+    const id = this.state.currentUser.id;
+    const content = `${previousUser} has changed their name to ${newUser}.`;
     if (!newUser) {
       this.setState({ currentUser: { name: "Anonymous" } });
     } else {
       const newNotification = {
         content,
-        type
+        type,
+        username: newUser,
+        id
       };
-      this.setState({ currentUser: { name: newUser, color: this.state.currentUser.color } });
+      this.setState({ currentUser: { name: newUser, color: this.state.currentUser.color, id: this.state.currentUser.id } });
       this.socket.send(JSON.stringify(newNotification));
       }
       console.log(this.state.currentUser.name);
     }
+
 
     IncomingMessage(incMessage) {
       let message = JSON.parse(incMessage.data);
@@ -71,8 +75,9 @@ class App extends Component {
         this.setState({ messages });
       } else {
       switch (message.type) {
-        case "color":
-          this.setState({ currentUser: { name: this.state.currentUser.name, color: message.color } });
+        case "initialConnection":
+        console.log(message);
+          this.setState({ currentUser: { name: this.state.currentUser.name, color: message.color, id: message.id } });
           break;
         case "incomingMessage":
           const messages = this.state.messages.concat(message);
@@ -102,13 +107,14 @@ class App extends Component {
       this.socket.addEventListener('open', this.serverConnected);
       this.socket.addEventListener('message', this.IncomingMessage);
     };
+
     render() {
       const usersOnline = < NavBar onlineUsers={this.state.onlineUsers}/>
-      const messageList = < MessageList message={ this.state.messages }/>
+      const messageList = < MessageList message={ this.state.messages } user={this.state.currentUser.name}/>
       return (
       <div>
       {usersOnline}
-        <h1> 🤗 </h1> { messageList }
+        { messageList }
         <ChatBar onSubmit={ this.addMessage } changeUser={ this.changeUser } currentUser={ this.state.currentUser }/>
         </div>
       );
