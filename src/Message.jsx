@@ -2,7 +2,6 @@ import React, { Component } from 'react';
 
 class Message extends Component {
   render() {
-    console.log(this.props.message.color)
     const userName = this.props.user;
     const currentUser = this.props.currentUser;
     const color = this.props.message.color;
@@ -26,7 +25,7 @@ class Message extends Component {
       </div>
     );
     }
-  } else if(this.props.message.type === "incomingNotification"){
+  } else if(this.props.message.type === "incomingNotification" || this.props.message.type === "WelcomeMSG" ){
       return(
       <div className="message system">{ this.props.message.content }</div>
       );

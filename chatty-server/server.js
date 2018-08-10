@@ -30,21 +30,23 @@ wss.on('connection', (client) => {
   client.id = uuidv4();
   console.log(client.id);
   handleConnection(client);
+  let newUser = "Anonymous" + Math.floor((Math.random() * 1000) + 1);
   activeUsers.size = wss.clients.size;
   activeUsers.type = "users";
   client.userConnected = {
     color: userColors[Math.floor(Math.random() * userColors.length)],
     type: "initialConnection",
     id: client.id,
-    username: "Anonymous" + Math.floor((Math.random() * 1000) + 1),
+    content: `${newUser} has connected. Welcome to Chatty!`,
+    username: newUser
   }
   sendFirstConnection(client.userConnected, client);
   allUsers.push(client.userConnected);
   activeUsers.allUsers = allUsers;
   sendUsers(activeUsers);
-  console.log(activeUsers);
+  broadcastMsgFirst(client.userConnected);
 
-
+  //When server receives a message:
   client.on('message', handleMessage);
 
   // Set up a callback for when a client closes the socket. This usually means they closed their browser.
@@ -71,16 +73,25 @@ function sendIDDisc(user) {
 }
 
 function sendUsers(users) {
-  broadcastMsg(JSON.stringify(users));
+  broadcastMsg(users);
 }
 
 function sendFirstConnection(user, client) {
   client.send(JSON.stringify(user));
 }
 
+function broadcastMsgFirst(data){
+  let msg = data;
+  msg.type = "WelcomeMSG";
+  let sentMsg = JSON.stringify(msg);
+  wss.clients.forEach(function(client) {
+    client.send(sentMsg);
+  })
+}
+
 function broadcastMsg(data) {
   wss.clients.forEach(function(client) {
-    client.send(data);
+    client.send(JSON.stringify(data));
   })
 }
 
@@ -104,7 +115,7 @@ function handleMessage(message) {
       });
       currentMsg.id = uuidv4();
       sendUsers(activeUsers);
-      broadcastMsg(JSON.stringify(currentMsg));
+      broadcastMsg(currentMsg);
       break;
     default:
       // show an error in the console if the message type is unknown

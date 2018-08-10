@@ -66,6 +66,7 @@ class App extends Component {
 
 
     IncomingMessage(incMessage) {
+      console.log(incMessage);
       let message = JSON.parse(incMessage.data);
       //Checks if the message coming in is an array (when user connects for the first time,
       // the pre-existing messages from the chat are loaded as arrays.
@@ -78,6 +79,10 @@ class App extends Component {
         case "initialConnection":
         console.log(message);
           this.setState({ currentUser: { name: message.username, color: message.color, id: message.id } });
+          break;
+        case "WelcomeMSG":
+          const firstMsg = this.state.messages.concat(message);
+          this.setState({ messages: firstMsg });
           break;
         case "incomingMessage":
           const messages = this.state.messages.concat(message);
