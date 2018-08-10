@@ -19,6 +19,7 @@ const wss = new SocketServer({ server });
 let currentMsg = '';
 
 let allMsgs = [];
+let allUsers = [];
 let activeUsers = {};
 const userColors = ["lime", "teal", "orange", "brown", "blueviolet", "red", "navy"];
 
@@ -35,10 +36,13 @@ wss.on('connection', (client) => {
     color: userColors[Math.floor(Math.random() * userColors.length)],
     type: "initialConnection",
     id: client.id,
-    username: "",
+    username: "Anonymous" + Math.floor((Math.random() * 1000) + 1),
   }
   sendFirstConnection(client.userConnected, client);
+  allUsers.push(client.userConnected);
+  activeUsers.allUsers = allUsers;
   sendUsers(activeUsers);
+  console.log(activeUsers);
 
 
   client.on('message', handleMessage);
@@ -48,8 +52,8 @@ wss.on('connection', (client) => {
     activeUsers.size = wss.clients.size;
     activeUsers.type = "users";
     console.log(client.userConnected.username);
-    sendUsers(activeUsers);
     sendIDDisc(client.userConnected);
+    sendUsers(activeUsers);
     console.log('Client disconnected');
   })
 });
@@ -60,11 +64,9 @@ function sendIDDisc(user) {
     name: user.username,
     id: user.id,
   }
-  if (user.username === "") {
-    disconnectedUser.content = `Anonymous person left the chat. We don't need him anyway.`;
-  } else {
-    disconnectedUser.content = `${user.username} left the chat. We don't need him anyway.`;
-  }
+  activeUsers.allUsers = activeUsers.allUsers.filter(el => el.username !== user.username);
+  console.log(activeUsers);
+  disconnectedUser.content = `${user.username} left the chat. We don't need him anyway.`;
   broadcastMsg(JSON.stringify(disconnectedUser));
 }
 
@@ -84,7 +86,6 @@ function broadcastMsg(data) {
 
 function handleMessage(message) {
   currentMsg = JSON.parse(message);
-  console.log(currentMsg);
   allMsgs.push(currentMsg);
   switch (currentMsg.type) {
     case "postMessage":
@@ -96,20 +97,24 @@ function handleMessage(message) {
     case "postNotification":
       currentMsg.type = "incomingNotification";
       wss.clients.forEach(function(client) {
-        console.log(client.userConnected.id);
-        console.log(currentMsg.id);
         if (client.userConnected.id == currentMsg.id) {
+          updateUserList(client.userConnected.username, activeUsers.allUsers, currentMsg.username);
           client.userConnected.username = currentMsg.username;
-          console.log(client.userConnected.username);
         } else { console.log("Nothing changed!") }
       });
       currentMsg.id = uuidv4();
+      sendUsers(activeUsers);
       broadcastMsg(JSON.stringify(currentMsg));
       break;
     default:
       // show an error in the console if the message type is unknown
       throw new Error("Unknown event type " + data.type);
   }
+}
+
+function updateUserList(name, array, newName) {
+  objIndex = array.findIndex((obj => obj.username === name))
+  array[objIndex].username = newName;
 }
 
 function handleConnection(client) {

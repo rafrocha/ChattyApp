@@ -11,7 +11,7 @@ class App extends Component {
     this.socket = new WebSocket("ws://localhost:3001");
     this.state = {
       loading: true,
-      currentUser: { name: "Anonymous"+Math.floor((Math.random() * 100) + 1), color: "black", id: ""},
+      currentUser: { name: "", color: "black", id: ""},
       messages: [],
       onlineUsers: 0
     };
@@ -77,7 +77,7 @@ class App extends Component {
       switch (message.type) {
         case "initialConnection":
         console.log(message);
-          this.setState({ currentUser: { name: this.state.currentUser.name, color: message.color, id: message.id } });
+          this.setState({ currentUser: { name: message.username, color: message.color, id: message.id } });
           break;
         case "incomingMessage":
           const messages = this.state.messages.concat(message);
@@ -88,7 +88,11 @@ class App extends Component {
           this.setState({ messages: notifications });
           break;
         case "users":
-          const users = message.size;
+          const users = [];
+          message.allUsers.forEach( function(user) {
+            users.push(user.username);
+          });
+          console.log(users);
           this.setState({ onlineUsers: users });
           console.log(this.state.onlineUsers);
           break;
