@@ -28,6 +28,7 @@ const userColors = ["lime", "teal", "orange", "brown", "blueviolet", "red", "nav
 // the ws parameter in the callback.
 wss.on('connection', (client) => {
   client.id = uuidv4();
+  console.log("User connected");
   handleConnection(client);
   let newUser = "Anonymous" + Math.floor((Math.random() * 1000) + 1);
   activeUsers.size = wss.clients.size;
@@ -37,7 +38,7 @@ wss.on('connection', (client) => {
     type: "initialConnection",
     id: client.id,
     content: `${newUser} has connected. Welcome to Chatty!`,
-    username: newUser
+    username: newUser,
   }
   sendFirstConnection(client.userConnected, client);
   allUsers.push(client.userConnected);
@@ -52,6 +53,7 @@ wss.on('connection', (client) => {
   client.on('close', () => {
     activeUsers.size = wss.clients.size;
     activeUsers.type = "users";
+    console.log(client.userConnected.username);
     sendIDDisc(client.userConnected);
     sendUsers(activeUsers);
     console.log('Client disconnected');
@@ -65,6 +67,7 @@ function sendIDDisc(user) {
     id: uuidv4(),
   }
   activeUsers.allUsers = activeUsers.allUsers.filter(el => el.username !== user.username);
+  allUsers = activeUsers.allUsers;
   disconnectedUser.content = `${user.username} left the chat. We don't need him anyway.`;
   disconnectedUser.newUsers = activeUsers.allUsers;
   broadcastMsg(disconnectedUser);
