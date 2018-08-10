@@ -1,18 +1,13 @@
-React Boilerplate
-=====================
+# Chatty App
 
-A minimal and light dev environment for ReactJS.
-
-# Project Title
-
-A responsive, team-built food-ordering and order management application that communicates with clients via SMS. Built with JavaScript, PostgreSQL, Express, Twilio API, Ajax, jQuery and HTML/CSS/SASS with Bootstrap.
+A responsive, React chat application that communicates with clients via Web sockets. Built with React, Node.js, Express, and HTML/CSS/SASS with Bootstrap.
 
 ## Screen shots
 
-!["Screenshot of responsive menu"]()
-!["Screenshot of responsive menu"]()
-!["Screenshot of responsive menu"]()
-!["Screenshot of responsive menu"]()
+!["Screenshot of new user Peter joining chat"](https://github.com/rafrocha/ChattyApp/blob/master/build/UsersLoggedin.png?raw=true)
+!["Screenshot of chat through peter's screen"](https://github.com/rafrocha/ChattyApp/blob/master/build/FirstUsers.png?raw=true)
+!["Screenshot of Vegas leaving the chat :("](https://github.com/rafrocha/ChattyApp/blob/master/build/LeftChat.png?raw=true)
+!["Screenshot of new user list updated. Raf is alone in the chat :/"](https://github.com/rafrocha/ChattyApp/blob/master/build/New-UserList.png?raw=true)
 
 ## Installing
 
