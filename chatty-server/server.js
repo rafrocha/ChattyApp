@@ -28,7 +28,6 @@ const userColors = ["lime", "teal", "orange", "brown", "blueviolet", "red", "nav
 // the ws parameter in the callback.
 wss.on('connection', (client) => {
   client.id = uuidv4();
-  console.log(client.id);
   handleConnection(client);
   let newUser = "Anonymous" + Math.floor((Math.random() * 1000) + 1);
   activeUsers.size = wss.clients.size;
@@ -53,7 +52,6 @@ wss.on('connection', (client) => {
   client.on('close', () => {
     activeUsers.size = wss.clients.size;
     activeUsers.type = "users";
-    console.log(client.userConnected.username);
     sendIDDisc(client.userConnected);
     sendUsers(activeUsers);
     console.log('Client disconnected');
@@ -64,12 +62,12 @@ function sendIDDisc(user) {
   let disconnectedUser = {
     type: "incomingNotification",
     name: user.username,
-    id: user.id,
+    id: uuidv4(),
   }
   activeUsers.allUsers = activeUsers.allUsers.filter(el => el.username !== user.username);
-  console.log(activeUsers);
   disconnectedUser.content = `${user.username} left the chat. We don't need him anyway.`;
-  broadcastMsg(JSON.stringify(disconnectedUser));
+  disconnectedUser.newUsers = activeUsers.allUsers;
+  broadcastMsg(disconnectedUser);
 }
 
 function sendUsers(users) {
@@ -102,8 +100,7 @@ function handleMessage(message) {
     case "postMessage":
       currentMsg.id = uuidv4();
       currentMsg.type = "incomingMessage";
-      broadcastMsg(JSON.stringify(currentMsg));
-      console.log("type:", currentMsg.type, "User:", currentMsg.username, "Content:", currentMsg.content, currentMsg.id);
+      broadcastMsg(currentMsg);
       break;
     case "postNotification":
       currentMsg.type = "incomingNotification";
@@ -129,6 +126,5 @@ function updateUserList(name, array, newName) {
 }
 
 function handleConnection(client) {
-  console.log(allMsgs);
   client.send(JSON.stringify(allMsgs));
 }

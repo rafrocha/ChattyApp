@@ -66,7 +66,6 @@ class App extends Component {
 
 
     IncomingMessage(incMessage) {
-      console.log(incMessage);
       let message = JSON.parse(incMessage.data);
       //Checks if the message coming in is an array (when user connects for the first time,
       // the pre-existing messages from the chat are loaded as arrays.
@@ -77,7 +76,6 @@ class App extends Component {
       } else {
       switch (message.type) {
         case "initialConnection":
-        console.log(message);
           this.setState({ currentUser: { name: message.username, color: message.color, id: message.id } });
           break;
         case "WelcomeMSG":
@@ -90,6 +88,13 @@ class App extends Component {
           break;
         case "incomingNotification":
           const notifications = this.state.messages.concat(message);
+          if(message.newUsers){
+            const newUserList = [];
+            message.newUsers.forEach( function(user) {
+            newUserList.push(user.username);
+          });
+            this.setState({ onlineUsers: newUserList });
+          }
           this.setState({ messages: notifications });
           break;
         case "users":
@@ -97,9 +102,7 @@ class App extends Component {
           message.allUsers.forEach( function(user) {
             users.push(user.username);
           });
-          console.log(users);
           this.setState({ onlineUsers: users });
-          console.log(this.state.onlineUsers);
           break;
         default:
           // show an error in the console if the message type is unknown
